@@ -20,3 +20,17 @@ Install dependencies using `requirements.txt`:
 ```bash
 pip install -r requirements.txt
 ```
+
+## 🧱 generate installer
+
+```
+pip install pyinstaller
+pyinstaller --onefile --windowed src/FolderScanner.py
+```
+
+## Upcoming Features
+
+- [ ] Support reporting files
+- [ ] Dark mode for the GUI
+- [ ] filter files i.e dwg, xls, png etc
+- [ ] Integrate error reporting
