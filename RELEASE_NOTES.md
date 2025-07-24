@@ -18,3 +18,6 @@
 
 - Please report any issues or feature requests via the [GitHub Issues page](https://github.com/your-username/your-repo/issues).
 - See the README for usage instructions.
+
+## Author
+- olufemi.akinwumi@wsp.com

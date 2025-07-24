@@ -1,0 +1,243 @@
+{
+    "chunks": [
+        {
+            "type": "txt",
+            "chunk_number": 1,
+            "lines": [
+                {
+                    "line_number": 1,
+                    "text": "import os"
+                },
+                {
+                    "line_number": 2,
+                    "text": "import shutil"
+                },
+                {
+                    "line_number": 3,
+                    "text": "from pathlib import Path"
+                },
+                {
+                    "line_number": 4,
+                    "text": ""
+                },
+                {
+                    "line_number": 5,
+                    "text": "def replicate_folder_structure(source, destination, include_files=False, extensions=None):"
+                },
+                {
+                    "line_number": 6,
+                    "text": "replicated = []"
+                },
+                {
+                    "line_number": 7,
+                    "text": ""
+                },
+                {
+                    "line_number": 8,
+                    "text": "for dirpath, dirnames, filenames in os.walk(source):"
+                },
+                {
+                    "line_number": 9,
+                    "text": "# Replicate folders"
+                },
+                {
+                    "line_number": 10,
+                    "text": "for dirname in dirnames:"
+                },
+                {
+                    "line_number": 11,
+                    "text": "source_path = os.path.join(dirpath, dirname)"
+                },
+                {
+                    "line_number": 12,
+                    "text": "relative_path = os.path.relpath(source_path, source)"
+                },
+                {
+                    "line_number": 13,
+                    "text": "dest_path = os.path.join(destination, relative_path)"
+                },
+                {
+                    "line_number": 14,
+                    "text": "try:"
+                },
+                {
+                    "line_number": 15,
+                    "text": "os.makedirs(dest_path, exist_ok=True)"
+                },
+                {
+                    "line_number": 16,
+                    "text": "status = 'Folder Replicated'"
+                },
+                {
+                    "line_number": 17,
+                    "text": "except Exception as e:"
+                },
+                {
+                    "line_number": 18,
+                    "text": "status = f'Folder Failed: {e}'"
+                },
+                {
+                    "line_number": 19,
+                    "text": "replicated.append({"
+                },
+                {
+                    "line_number": 20,
+                    "text": "'Type': 'Folder',"
+                },
+                {
+                    "line_number": 21,
+                    "text": "'Name': dirname,"
+                },
+                {
+                    "line_number": 22,
+                    "text": "'Source Path': source_path,"
+                },
+                {
+                    "line_number": 23,
+                    "text": "'Destination Path': dest_path,"
+                },
+                {
+                    "line_number": 24,
+                    "text": "'Extension': '',"
+                },
+                {
+                    "line_number": 25,
+                    "text": "'Status': status"
+                },
+                {
+                    "line_number": 26,
+                    "text": "})"
+                },
+                {
+                    "line_number": 27,
+                    "text": ""
+                },
+                {
+                    "line_number": 28,
+                    "text": "# Copy files if enabled"
+                },
+                {
+                    "line_number": 29,
+                    "text": "if include_files:"
+                },
+                {
+                    "line_number": 30,
+                    "text": "for filename in filenames:"
+                },
+                {
+                    "line_number": 31,
+                    "text": "file_ext = os.path.splitext(filename)[1]"
+                },
+                {
+                    "line_number": 32,
+                    "text": ""
+                },
+                {
+                    "line_number": 33,
+                    "text": "# Skip if extensions are specified and file doesn't match"
+                },
+                {
+                    "line_number": 34,
+                    "text": "if extensions and not any(filename.lower().endswith(ext.lower()) for ext in extensions):"
+                },
+                {
+                    "line_number": 35,
+                    "text": "continue"
+                },
+                {
+                    "line_number": 36,
+                    "text": ""
+                },
+                {
+                    "line_number": 37,
+                    "text": "source_file = os.path.join(dirpath, filename)"
+                },
+                {
+                    "line_number": 38,
+                    "text": "relative_file_path = os.path.relpath(source_file, source)"
+                },
+                {
+                    "line_number": 39,
+                    "text": "dest_file = os.path.join(destination, relative_file_path)"
+                },
+                {
+                    "line_number": 40,
+                    "text": "dest_folder = os.path.dirname(dest_file)"
+                },
+                {
+                    "line_number": 41,
+                    "text": ""
+                },
+                {
+                    "line_number": 42,
+                    "text": "try:"
+                },
+                {
+                    "line_number": 43,
+                    "text": "os.makedirs(dest_folder, exist_ok=True)"
+                },
+                {
+                    "line_number": 44,
+                    "text": "shutil.copy2(source_file, dest_file)"
+                },
+                {
+                    "line_number": 45,
+                    "text": "status = 'File Copied'"
+                },
+                {
+                    "line_number": 46,
+                    "text": "except Exception as e:"
+                },
+                {
+                    "line_number": 47,
+                    "text": "status = f'File Failed: {e}'"
+                },
+                {
+                    "line_number": 48,
+                    "text": ""
+                },
+                {
+                    "line_number": 49,
+                    "text": "replicated.append({"
+                },
+                {
+                    "line_number": 50,
+                    "text": "'Type': 'File',"
+                },
+                {
+                    "line_number": 51,
+                    "text": "'Name': filename,"
+                },
+                {
+                    "line_number": 52,
+                    "text": "'Source Path': source_file,"
+                },
+                {
+                    "line_number": 53,
+                    "text": "'Destination Path': dest_file,"
+                },
+                {
+                    "line_number": 54,
+                    "text": "'Extension': file_ext,"
+                },
+                {
+                    "line_number": 55,
+                    "text": "'Status': status"
+                },
+                {
+                    "line_number": 56,
+                    "text": "})"
+                },
+                {
+                    "line_number": 57,
+                    "text": ""
+                },
+                {
+                    "line_number": 58,
+                    "text": "return replicated"
+                }
+            ],
+            "token_count": 609
+        }
+    ]
+}
