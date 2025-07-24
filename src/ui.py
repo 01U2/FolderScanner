@@ -37,14 +37,14 @@ def ask_user_choice():
 
     include_files_var.trace_add("write", toggle_extensions_input)
 
-    # Replicate checkbox
-    tk.Checkbutton(options_frame, text="Replicate Structure", variable=replicate_var, anchor="w").pack(anchor="w", pady=2)
     # Include files checkbox
     tk.Checkbutton(options_frame, text="Include Files", variable=include_files_var, anchor="w").pack(anchor="w", pady=2)
-
+    # Replicate checkbox
+    tk.Checkbutton(options_frame, text="Replicate Structure", variable=replicate_var, anchor="w").pack(anchor="w", pady=2)
+    
     # ---------- Extensions Entry (initially hidden) ----------
     extensions_frame = tk.Frame(root)
-    tk.Label(extensions_frame, text="File extensions to include (e.g. .pdf, .docx):").pack(anchor="w")
+    tk.Label(extensions_frame, text="Provide file extensions, seperated by ',' (e.g. .pdf, .docx):").pack(anchor="w")
     tk.Entry(extensions_frame, textvariable=extensions_var, width=50).pack(anchor="w", pady=2)
 
     # ---------- Scan Button ----------
@@ -54,28 +54,27 @@ def ask_user_choice():
     def start_scan():
         try:
             source_folder = select_folder("Select Folder to Scan")
-            if not source_folder:
-                raise FileNotFoundError("No folder selected.")
-
-            save_location = select_save_location("Select Excel Save Location")
-            if not save_location:
-                raise FileNotFoundError("No save location selected.")
+            save_location = select_save_location()
 
             include_files = include_files_var.get()
             extensions = [ext.strip() for ext in extensions_var.get().split(',') if ext.strip()] if include_files else None
-
-            data = collect_folders_and_files(source_folder, include_files, extensions)
-
+        
             if replicate_var.get():
                 dest_folder = select_folder("Select Destination for Replication")
-                if not dest_folder:
-                    raise FileNotFoundError("No replication destination selected.")
-                replication_results = replicate_folder_structure(source_folder, dest_folder)
+                replication_results = replicate_folder_structure(source_folder, dest_folder, include_files, extensions)
                 pd.DataFrame(replication_results).to_excel(save_location, index=False)
             else:
+                data = collect_folders_and_files(source_folder, include_files, extensions)
                 save_to_excel(data, save_location)
 
-            messagebox.showinfo("Completed", "Scan completed successfully.")
+            
+            message = (
+                        f"Scan and Copy completed successfully.\nReport has been saved to:\n{save_location}"
+                        if replicate_var.get()
+                        else f"Scan completed successfully.\nReport has been saved to:\n{save_location}"
+            )
+            messagebox.showinfo("Completed", message)
+                
 
         except FileNotFoundError:
             messagebox.showwarning("Cancelled", "Operation cancelled by the user.")

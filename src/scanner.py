@@ -4,34 +4,32 @@ from pathlib import Path
 
 def collect_folders_and_files(root_folder, include_files=False, extensions=None):
     data = []
+
     for dirpath, dirnames, filenames in os.walk(root_folder):
+        # Collect folder info
         for dirname in dirnames:
-            full_path = os.path.join(dirpath, dirname)
-            parent = os.path.basename(dirpath)
-            depth = len(Path(full_path).parts) - len(Path(root_folder).parts)
             data.append({
                 'Type': 'Folder',
                 'Name': dirname,
-                'Path': full_path,
-                'Parent': parent,
-                'Extension': '',
-                'Depth': depth
+                'Path': Path(os.path.join(dirpath, dirname)).as_posix(),
+                'Extension': ''
             })
-        if include_files:
+
+        # Collect file info if enabled
+        if include_files:       
             for filename in filenames:
-                if extensions:
-                    if not any(filename.lower().endswith(ext.lower()) for ext in extensions):
-                        continue
-                full_path = os.path.join(dirpath, filename)
-                parent = os.path.basename(dirpath)
-                depth = len(Path(full_path).parts) - len(Path(root_folder).parts)
-                ext = os.path.splitext(filename)[1]
+                file_ext = os.path.splitext(filename)[1]
+
+                # Skip if extensions filter is applied and file doesn't match
+                if extensions and not any(filename.lower().endswith(ext.lower()) for ext in extensions):
+                    continue
+
                 data.append({
                     'Type': 'File',
                     'Name': filename,
-                    'Path': full_path,
-                    'Parent': parent,
-                    'Extension': ext,
-                    'Depth': depth
+                    'Path': Path(os.path.join(dirpath, filename)).as_posix(),
+                    'Extension': file_ext
                 })
+
     return data
+
