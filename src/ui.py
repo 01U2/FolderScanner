@@ -1,13 +1,22 @@
 import tkinter as tk
 from tkinter import messagebox
 import pandas as pd
-from file_io import select_folder, select_save_location, save_to_excel
-from scanner import collect_folders_and_files
-from replicator import replicate_folder_structure
+from src.file_io import select_folder, select_save_location, save_to_excel
+from src.scanner import collect_folders_and_files
+from src.replicator import replicate_folder_structure
+import sys
+import os
 
 def ask_user_choice():
     root = tk.Tk()
     root.title("Folder and File Scanner")
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS  # PyInstaller's temp path
+    else:
+        base_path = os.path.abspath(".")
+
+    icon_path = os.path.join(base_path, "icon", "folderScanner.ico")
+    root.iconbitmap(icon_path)
     root.geometry("600x350")
     root.eval('tk::PlaceWindow . center')
 
@@ -19,7 +28,7 @@ def ask_user_choice():
         "• Check 'Replicate Structure' to copy the folder layout elsewhere.\n\n"
         "Report issues to olufemi.akinwumi@wsp.com."
     )
-    tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="blue").pack(pady=10)
+    tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="#EF3427").pack(pady=10)
 
     # ---------- Options Frame ----------
     options_frame = tk.Frame(root)
@@ -44,7 +53,7 @@ def ask_user_choice():
     
     # ---------- Extensions Entry (initially hidden) ----------
     extensions_frame = tk.Frame(root)
-    tk.Label(extensions_frame, text="Provide file extensions, seperated by ',' (e.g. .pdf, .docx):").pack(anchor="w")
+    tk.Label(extensions_frame, text="Provide file extensions, seperated by ',' (example: .pdf, .docx)").pack(anchor="w")
     tk.Entry(extensions_frame, textvariable=extensions_var, width=50).pack(anchor="w", pady=2)
 
     # ---------- Scan Button ----------

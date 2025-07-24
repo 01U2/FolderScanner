@@ -8,9 +8,9 @@ def replicate_folder_structure(source, destination, include_files=False, extensi
     for dirpath, dirnames, filenames in os.walk(source):
         # Replicate folders
         for dirname in dirnames:
-            source_path = os.path.join(dirpath, dirname)
-            relative_path = os.path.relpath(source_path, source)
-            dest_path = os.path.join(destination, relative_path)
+            source_path = Path(os.path.join(dirpath, dirname)).as_posix()
+            relative_path = Path(os.path.relpath(source_path, source)).as_posix()
+            dest_path = Path(os.path.join(destination, relative_path)).as_posix()
             try:
                 os.makedirs(dest_path, exist_ok=True)
                 status = 'Folder Replicated'
@@ -34,9 +34,9 @@ def replicate_folder_structure(source, destination, include_files=False, extensi
                 if extensions and not any(filename.lower().endswith(ext.lower()) for ext in extensions):
                     continue
 
-                source_file = os.path.join(dirpath, filename)
-                relative_file_path = os.path.relpath(source_file, source)
-                dest_file = os.path.join(destination, relative_file_path)
+                source_file = Path(os.path.join(dirpath, filename)).as_posix()
+                relative_file_path = Path(os.path.relpath(source_file, source)).as_posix()
+                dest_file = Path(os.path.join(destination, relative_file_path)).as_posix()
                 dest_folder = os.path.dirname(dest_file)
 
                 try:
