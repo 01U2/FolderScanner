@@ -32,3 +32,5 @@ pyinstaller --onefile --windowed --add-data="icon\folderScanner.ico;icon" instal
 
 - [ ] Dark mode for the GUI
 - [ ] Integrate error reporting
+
+<img src="Assets/Folder Scanner.png" alt="Folder Scanner" width="300"/>
