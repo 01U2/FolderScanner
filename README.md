@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 ```
 pip install pyinstaller
-pyinstaller --onefile --windowed src/FolderScanner.py
+pyinstaller --onefile --windowed installer.py
 ```
 
 ## Upcoming Features
