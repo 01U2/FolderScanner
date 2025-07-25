@@ -17,15 +17,17 @@ def ask_user_choice():
 
     icon_path = os.path.join(base_path, "icon", "folderScanner.ico")
     root.iconbitmap(icon_path)
-    root.geometry("600x350")
+    root.geometry("600x400")
     root.eval('tk::PlaceWindow . center')
 
     # ---------- Main Instructions ----------
     guide_text = (
-        "Welcome to Folder and File Scanner!\n\n"
-        "• Click 'Scan' to select a folder and export its structure to Excel.\n"
-        "• Check 'Include Files' to scan specific file types.\n"
-        "• Check 'Replicate Structure' to copy the folder layout elsewhere.\n\n"
+        "Welcome to Folder and File Scanner!\n"
+        "It simply allows scanning, reporting and replicating folder contents.\n\n"
+        "• Check 'Include Files' to include files in the scan.\n"
+        "• Use the Filter text to filter by specific file types.\n"
+        "• Check 'Replicate Structure' to copy the folder (and files) layout elsewhere.\n"
+        "• Click 'Scan' to start the activity.\n\n"
         "Report issues to olufemi.akinwumi@wsp.com."
     )
     tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="#EF3427").pack(pady=10)
