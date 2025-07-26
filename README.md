@@ -13,7 +13,7 @@ This Python application lets users scan a selected folder and its subdirectories
 - Optional replication of directory structure to a chosen location
 - Saves results to a clean, formatted Excel file (`.xlsx`)
 
-## 🧱 Requirements
+## ✔ Requirements
 
 Install dependencies using `requirements.txt`:
 
@@ -21,16 +21,16 @@ Install dependencies using `requirements.txt`:
 pip install -r requirements.txt
 ```
 
-## 🧱 generate installer
+## 🧵 generate installer
 
 ```
 pip install pyinstaller
 pyinstaller --onefile --windowed --add-data="icon\folderScanner.ico;icon" installer.py
 ```
 
-## Upcoming Features
+## 📢 Upcoming Features
 
 - [ ] Dark mode for the GUI
 - [ ] Integrate error reporting
 
-<img src="Assets/Folder Scanner.png" alt="Folder Scanner" width="300"/>
+<img src="Assets/Folder Scanner.png" alt="Folder Scanner" width="600"/>
