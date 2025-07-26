@@ -30,7 +30,7 @@ def ask_user_choice():
         "• Click 'Scan' to start the activity.\n\n"
 
     )
-    tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="#EF3427").pack(pady=10)
+    tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="blue").pack(pady=10)
 
     # ---------- Options Frame ----------
     options_frame = tk.Frame(root)
