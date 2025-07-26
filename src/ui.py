@@ -28,7 +28,7 @@ def ask_user_choice():
         "• Use the Filter text to filter by specific file types.\n"
         "• Check 'Replicate Structure' to copy the folder (and files) layout elsewhere.\n"
         "• Click 'Scan' to start the activity.\n\n"
-        "Report issues to olufemi.akinwumi@wsp.com."
+
     )
     tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="#EF3427").pack(pady=10)
 
