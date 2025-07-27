@@ -13,10 +13,15 @@ def select_folder(title):
         raise FileNotFoundError("No folder selected.")
     return folder_selected
 
-def select_save_location(title=None):
+def select_save_location(title=None, report_type="structure"):
     desktop = r"C:\temp"
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"Folder_Structure_{timestamp}.xlsx"
+    
+    if report_type == "duplicates":
+        filename = f"Duplicate_Files_Report_{timestamp}.xlsx"
+    else:
+        filename = f"Folder_Structure_{timestamp}.xlsx"
+        
     file_path = os.path.join(desktop, filename)
     return file_path
 

@@ -24,11 +24,20 @@ def collect_folders_and_files(root_folder, include_files=False, extensions=None)
                 if extensions and not any(filename.lower().endswith(ext.lower()) for ext in extensions):
                     continue
 
+                file_path = Path(os.path.join(dirpath, filename)).as_posix()
+                
+                # Get file size
+                try:
+                    file_size = os.path.getsize(file_path)
+                except OSError:
+                    file_size = 0
+
                 data.append({
                     'Type': 'File',
                     'Name': filename,
-                    'Path': Path(os.path.join(dirpath, filename)).as_posix(),
-                    'Extension': file_ext
+                    'Path': file_path,
+                    'Extension': file_ext,
+                    'Size': file_size
                 })
 
     return data
