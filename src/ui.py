@@ -4,21 +4,52 @@ import pandas as pd
 from src.file_io import select_folder, select_save_location, save_to_excel
 from src.scanner import collect_folders_and_files
 from src.replicator import replicate_folder_structure
+from src.theme_manager import ThemeManager
 import sys
 import os
 
 def ask_user_choice():
     root = tk.Tk()
     root.title("Folder and File Scanner")
+    
+    # Initialize theme manager
+    theme_manager = ThemeManager()
+    
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS  # PyInstaller's temp path
     else:
         base_path = os.path.abspath(".")
 
-    icon_path = os.path.join(base_path, "icon", "folderScanner.ico")
-    root.iconbitmap(icon_path)
-    root.geometry("600x400")
+    try:
+        icon_path = os.path.join(base_path, "icon", "folderScanner.ico")
+        root.iconbitmap(icon_path)
+    except:
+        pass  # Icon file may not exist in all environments
+        
+    root.geometry("600x450")  # Slightly taller for theme toggle
     root.eval('tk::PlaceWindow . center')
+    
+    # Apply initial theme to root
+    theme_manager.apply_theme_to_widget(root, 'root')
+
+    # ---------- Theme Toggle Frame ----------
+    theme_frame = tk.Frame(root)
+    theme_frame.pack(fill="x", padx=20, pady=(10, 5))
+    theme_manager.apply_theme_to_widget(theme_frame, 'frame')
+    
+    current_theme_text = f"Theme: {theme_manager.current_theme.title()}"
+    theme_label = tk.Label(theme_frame, text=current_theme_text)
+    theme_label.pack(side="left")
+    theme_manager.apply_theme_to_widget(theme_label, 'label')
+    
+    def toggle_theme():
+        new_theme = theme_manager.toggle_theme()
+        theme_label.config(text=f"Theme: {new_theme.title()}")
+        apply_theme_to_all_widgets()
+    
+    theme_button = tk.Button(theme_frame, text="🌓 Toggle Theme", command=toggle_theme, width=15)
+    theme_button.pack(side="right")
+    theme_manager.apply_theme_to_widget(theme_button, 'button')
 
     # ---------- Main Instructions ----------
     guide_text = (
@@ -30,11 +61,14 @@ def ask_user_choice():
         "• Click 'Scan' to start the activity.\n\n"
 
     )
-    tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="blue").pack(pady=10)
+    instructions_label = tk.Label(root, text=guide_text, justify="left", wraplength=580)
+    instructions_label.pack(pady=10)
+    theme_manager.apply_theme_to_widget(instructions_label, 'label')
 
     # ---------- Options Frame ----------
     options_frame = tk.Frame(root)
     options_frame.pack(fill="x", padx=20)
+    theme_manager.apply_theme_to_widget(options_frame, 'frame')
 
     include_files_var = tk.BooleanVar()
     replicate_var = tk.BooleanVar()
@@ -49,17 +83,46 @@ def ask_user_choice():
     include_files_var.trace_add("write", toggle_extensions_input)
 
     # Include files checkbox
-    tk.Checkbutton(options_frame, text="Include Files", variable=include_files_var, anchor="w").pack(anchor="w", pady=2)
+    include_files_checkbox = tk.Checkbutton(options_frame, text="Include Files", variable=include_files_var, anchor="w")
+    include_files_checkbox.pack(anchor="w", pady=2)
+    theme_manager.apply_theme_to_widget(include_files_checkbox, 'checkbutton')
+    
     # Replicate checkbox
-    tk.Checkbutton(options_frame, text="Replicate Structure", variable=replicate_var, anchor="w").pack(anchor="w", pady=2)
+    replicate_checkbox = tk.Checkbutton(options_frame, text="Replicate Structure", variable=replicate_var, anchor="w")
+    replicate_checkbox.pack(anchor="w", pady=2)
+    theme_manager.apply_theme_to_widget(replicate_checkbox, 'checkbutton')
     
     # ---------- Extensions Entry (initially hidden) ----------
     extensions_frame = tk.Frame(root)
-    tk.Label(extensions_frame, text="Provide file extensions, seperated by ',' (example: .pdf, .docx)").pack(anchor="w")
-    tk.Entry(extensions_frame, textvariable=extensions_var, width=50).pack(anchor="w", pady=2)
+    theme_manager.apply_theme_to_widget(extensions_frame, 'frame')
+    
+    extensions_label = tk.Label(extensions_frame, text="Provide file extensions, seperated by ',' (example: .pdf, .docx)")
+    extensions_label.pack(anchor="w")
+    theme_manager.apply_theme_to_widget(extensions_label, 'label')
+    
+    extensions_entry = tk.Entry(extensions_frame, textvariable=extensions_var, width=50)
+    extensions_entry.pack(anchor="w", pady=2)
+    theme_manager.apply_theme_to_widget(extensions_entry, 'entry')
 
     # ---------- Scan Button ----------
-    tk.Button(root, text="Scan", command=lambda: start_scan(), width=20, height=2).pack(pady=20)
+    scan_button = tk.Button(root, text="Scan", command=lambda: start_scan(), width=20, height=2)
+    scan_button.pack(pady=20)
+    theme_manager.apply_theme_to_widget(scan_button, 'button')
+
+    # Function to apply theme to all widgets
+    def apply_theme_to_all_widgets():
+        theme_manager.apply_theme_to_widget(root, 'root')
+        theme_manager.apply_theme_to_widget(theme_frame, 'frame')
+        theme_manager.apply_theme_to_widget(theme_label, 'label')
+        theme_manager.apply_theme_to_widget(theme_button, 'button')
+        theme_manager.apply_theme_to_widget(instructions_label, 'label')
+        theme_manager.apply_theme_to_widget(options_frame, 'frame')
+        theme_manager.apply_theme_to_widget(include_files_checkbox, 'checkbutton')
+        theme_manager.apply_theme_to_widget(replicate_checkbox, 'checkbutton')
+        theme_manager.apply_theme_to_widget(extensions_frame, 'frame')
+        theme_manager.apply_theme_to_widget(extensions_label, 'label')
+        theme_manager.apply_theme_to_widget(extensions_entry, 'entry')
+        theme_manager.apply_theme_to_widget(scan_button, 'button')
 
     # ---------- Logic for Scanning ----------
     def start_scan():
