@@ -26,6 +26,7 @@ def ask_user_choice():
         "It simply allows scanning, reporting and replicating folder contents.\n\n"
         "• Check 'Include Files' to include files in the scan.\n"
         "• Use the Filter text to filter by specific file types.\n"
+        "• Exclude specific folders by listing their names (separated by commas).\n"
         "• Check 'Replicate Structure' to copy the folder (and files) layout elsewhere.\n"
         "• Click 'Scan' to start the activity.\n\n"
 
@@ -39,6 +40,7 @@ def ask_user_choice():
     include_files_var = tk.BooleanVar()
     replicate_var = tk.BooleanVar()
     extensions_var = tk.StringVar()
+    excluded_folders_var = tk.StringVar()
 
     def toggle_extensions_input(*args):
         if include_files_var.get():
@@ -58,6 +60,12 @@ def ask_user_choice():
     tk.Label(extensions_frame, text="Provide file extensions, seperated by ',' (example: .pdf, .docx)").pack(anchor="w")
     tk.Entry(extensions_frame, textvariable=extensions_var, width=50).pack(anchor="w", pady=2)
 
+    # ---------- Excluded Folders Entry ----------
+    excluded_folders_frame = tk.Frame(root)
+    excluded_folders_frame.pack(fill="x", padx=20, pady=5)
+    tk.Label(excluded_folders_frame, text="Exclude folders (separated by ',' - example: temp, cache, .git)").pack(anchor="w")
+    tk.Entry(excluded_folders_frame, textvariable=excluded_folders_var, width=50).pack(anchor="w", pady=2)
+
     # ---------- Scan Button ----------
     tk.Button(root, text="Scan", command=lambda: start_scan(), width=20, height=2).pack(pady=20)
 
@@ -69,13 +77,14 @@ def ask_user_choice():
 
             include_files = include_files_var.get()
             extensions = [ext.strip() for ext in extensions_var.get().split(',') if ext.strip()] if include_files else None
+            excluded_folders = [folder.strip() for folder in excluded_folders_var.get().split(',') if folder.strip()]
         
             if replicate_var.get():
                 dest_folder = select_folder("Select Destination for Replication")
-                replication_results = replicate_folder_structure(source_folder, dest_folder, include_files, extensions)
+                replication_results = replicate_folder_structure(source_folder, dest_folder, include_files, extensions, excluded_folders)
                 pd.DataFrame(replication_results).to_excel(save_location, index=False)
             else:
-                data = collect_folders_and_files(source_folder, include_files, extensions)
+                data = collect_folders_and_files(source_folder, include_files, extensions, excluded_folders)
                 save_to_excel(data, save_location)
 
             
