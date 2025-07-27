@@ -13,10 +13,10 @@ def select_folder(title):
         raise FileNotFoundError("No folder selected.")
     return folder_selected
 
-def select_save_location(title=None):
+def select_save_location(operation_type="Folder_Structure"):
     desktop = r"C:\temp"
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"Folder_Structure_{timestamp}.xlsx"
+    filename = f"{operation_type}_{timestamp}.xlsx"
     file_path = os.path.join(desktop, filename)
     return file_path
 
