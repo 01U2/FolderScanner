@@ -34,7 +34,7 @@ class FolderScannerApp:
             "• Click 'Scan' to start the activity.\n\n"
 
         )
-        tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="blue").pack(pady=7)
+        tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="blue").pack(pady=self.LABEL_PADDING)
 
         # ---------- Options Frame ----------
         options_frame = tk.Frame(root)
