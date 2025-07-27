@@ -79,13 +79,13 @@ def ask_user_choice():
     def start_scan():
         try:
             source_folder = select_folder("Select Folder to Scan")
-            save_location = select_save_location()
 
             include_files = include_files_var.get()
             detect_duplicates = detect_duplicates_var.get()
             extensions = [ext.strip() for ext in extensions_var.get().split(',') if ext.strip()] if include_files else None
         
             if replicate_var.get():
+                save_location = select_save_location(report_type="replication")
                 dest_folder = select_folder("Select Destination for Replication")
                 replication_results = replicate_folder_structure(source_folder, dest_folder, include_files, extensions)
                 pd.DataFrame(replication_results).to_excel(save_location, index=False)
@@ -97,6 +97,7 @@ def ask_user_choice():
                     # Find duplicates and format results
                     duplicates = find_duplicates(data)
                     if duplicates:
+                        save_location = select_save_location(report_type="duplicates")
                         duplicate_results = format_duplicate_results(duplicates)
                         stats = get_duplicate_statistics(duplicates)
                         
@@ -111,10 +112,12 @@ def ask_user_choice():
                         )
                     else:
                         # No duplicates found, save regular scan
+                        save_location = select_save_location(report_type="structure")
                         save_to_excel(data, save_location)
                         message = f"No duplicate files found.\nRegular scan report has been saved to:\n{save_location}"
                 else:
                     # Regular scan without duplicate detection
+                    save_location = select_save_location(report_type="structure")
                     save_to_excel(data, save_location)
                     message = f"Scan completed successfully.\nReport has been saved to:\n{save_location}"
 
