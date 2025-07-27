@@ -5,7 +5,7 @@
 ## 🚀 New Features
 
 - **Files Scanning:** Scans folder contents to include files as an optional selection.
-- **Files Filter:** Files filter options enabled
+- **Files Filter:** Files filter options enabled.
 ## 🛠️ Improvements
 
 - Initial implementation with robust error handling and user instructions.
