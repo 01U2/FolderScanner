@@ -10,6 +10,7 @@ import os
 def ask_user_choice():
     root = tk.Tk()
     root.title("Folder and File Scanner")
+
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS  # PyInstaller's temp path
     else:
@@ -17,7 +18,7 @@ def ask_user_choice():
 
     icon_path = os.path.join(base_path, "icon", "folderScanner.ico")
     root.iconbitmap(icon_path)
-    root.geometry("600x400")
+    root.geometry("600x450")
     root.eval('tk::PlaceWindow . center')
 
     # ---------- Main Instructions ----------
@@ -29,7 +30,6 @@ def ask_user_choice():
         "• Exclude specific folders by listing their names (separated by commas).\n"
         "• Check 'Replicate Structure' to copy the folder (and files) layout elsewhere.\n"
         "• Click 'Scan' to start the activity.\n\n"
-
     )
     tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="blue").pack(pady=10)
 
@@ -38,33 +38,47 @@ def ask_user_choice():
     options_frame.pack(fill="x", padx=20)
 
     include_files_var = tk.BooleanVar()
+    exclude_folders_var = tk.BooleanVar()
     replicate_var = tk.BooleanVar()
     extensions_var = tk.StringVar()
     excluded_folders_var = tk.StringVar()
 
+    # ---------- Toggled Input Frame Container ----------
+    toggle_frame = tk.Frame(root)
+    toggle_frame.pack(fill="x", padx=20, pady=5)
+
+    # ---------- Extensions Entry (initially hidden) ----------
+    extensions_frame = tk.Frame(toggle_frame)
+    tk.Label(extensions_frame, text="Provide file extensions, separated by ',' (example: .pdf, .docx)").pack(anchor="w")
+    tk.Entry(extensions_frame, textvariable=extensions_var, width=50).pack(anchor="w", pady=2)
+    extensions_frame.pack_forget()
+
+    # ---------- Excluded Folders Entry (initially hidden) ----------
+    folders_frame = tk.Frame(toggle_frame)
+    tk.Label(folders_frame, text="Exclude folders, separated by ','  (example: temp, cache, .git)").pack(anchor="w")
+    tk.Entry(folders_frame, textvariable=excluded_folders_var, width=50).pack(anchor="w", pady=2)
+    folders_frame.pack_forget()
+
+    # ---------- Checkbox Logic ----------
     def toggle_extensions_input(*args):
         if include_files_var.get():
-            extensions_frame.pack(fill="x", padx=20, pady=5)
+            extensions_frame.pack(fill="x", pady=5)
         else:
-            extensions_frame.forget()
+            extensions_frame.pack_forget()
+
+    def toggle_folders_input(*args):
+        if exclude_folders_var.get():
+            folders_frame.pack(fill="x", pady=5)
+        else:
+            folders_frame.pack_forget()
 
     include_files_var.trace_add("write", toggle_extensions_input)
+    exclude_folders_var.trace_add("write", toggle_folders_input)
 
-    # Include files checkbox
-    tk.Checkbutton(options_frame, text="Include Files", variable=include_files_var, anchor="w").pack(anchor="w", pady=2)
-    # Replicate checkbox
+    # ---------- Checkboxes ----------
+    tk.Checkbutton(options_frame, text="Include File(s)", variable=include_files_var, anchor="w").pack(anchor="w", pady=2)
+    tk.Checkbutton(options_frame, text="Exclude Folder(s)", variable=exclude_folders_var, anchor="w").pack(anchor="w", pady=2)
     tk.Checkbutton(options_frame, text="Replicate Structure", variable=replicate_var, anchor="w").pack(anchor="w", pady=2)
-    
-    # ---------- Extensions Entry (initially hidden) ----------
-    extensions_frame = tk.Frame(root)
-    tk.Label(extensions_frame, text="Provide file extensions, seperated by ',' (example: .pdf, .docx)").pack(anchor="w")
-    tk.Entry(extensions_frame, textvariable=extensions_var, width=50).pack(anchor="w", pady=2)
-
-    # ---------- Excluded Folders Entry ----------
-    excluded_folders_frame = tk.Frame(root)
-    excluded_folders_frame.pack(fill="x", padx=20, pady=5)
-    tk.Label(excluded_folders_frame, text="Exclude folders (separated by ',' - example: temp, cache, .git)").pack(anchor="w")
-    tk.Entry(excluded_folders_frame, textvariable=excluded_folders_var, width=50).pack(anchor="w", pady=2)
 
     # ---------- Scan Button ----------
     tk.Button(root, text="Scan", command=lambda: start_scan(), width=20, height=2).pack(pady=20)
@@ -78,23 +92,32 @@ def ask_user_choice():
             include_files = include_files_var.get()
             extensions = [ext.strip() for ext in extensions_var.get().split(',') if ext.strip()] if include_files else None
             excluded_folders = [folder.strip() for folder in excluded_folders_var.get().split(',') if folder.strip()]
-        
+
             if replicate_var.get():
                 dest_folder = select_folder("Select Destination for Replication")
-                replication_results = replicate_folder_structure(source_folder, dest_folder, include_files, extensions, excluded_folders)
+                replication_results = replicate_folder_structure(
+                    source_folder,
+                    dest_folder,
+                    include_files,
+                    extensions,
+                    excluded_folders
+                )
                 pd.DataFrame(replication_results).to_excel(save_location, index=False)
             else:
-                data = collect_folders_and_files(source_folder, include_files, extensions, excluded_folders)
+                data = collect_folders_and_files(
+                    source_folder,
+                    include_files,
+                    extensions,
+                    excluded_folders
+                )
                 save_to_excel(data, save_location)
 
-            
             message = (
-                        f"Scan and Copy completed successfully.\nReport has been saved to:\n{save_location}"
-                        if replicate_var.get()
-                        else f"Scan completed successfully.\nReport has been saved to:\n{save_location}"
+                f"Scan and Copy completed successfully.\nReport has been saved to:\n{save_location}"
+                if replicate_var.get()
+                else f"Scan completed successfully.\nReport has been saved to:\n{save_location}"
             )
             messagebox.showinfo("Completed", message)
-                
 
         except FileNotFoundError:
             messagebox.showwarning("Cancelled", "Operation cancelled by the user.")
