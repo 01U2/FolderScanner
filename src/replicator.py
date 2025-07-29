@@ -2,10 +2,18 @@ import os
 import shutil
 from pathlib import Path
 
-def replicate_folder_structure(source, destination, include_files=False, extensions=None):
+def replicate_folder_structure(source, destination, include_files=False, extensions=None, excluded_folders=None):
     replicated = []
+    
+    # Convert excluded folders to lowercase for case-insensitive matching
+    if excluded_folders:
+        excluded_folders = [folder.strip().lower() for folder in excluded_folders if folder.strip()]
+    else:
+        excluded_folders = []
 
     for dirpath, dirnames, filenames in os.walk(source):
+        # Remove excluded folders from dirnames to prevent os.walk from traversing them
+        dirnames[:] = [d for d in dirnames if d.lower() not in excluded_folders]
         # Replicate folders
         for dirname in dirnames:
             source_path = Path(os.path.join(dirpath, dirname)).as_posix()

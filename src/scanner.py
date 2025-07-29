@@ -2,10 +2,18 @@
 import os
 from pathlib import Path
 
-def collect_folders_and_files(root_folder, include_files=False, extensions=None):
+def collect_folders_and_files(root_folder, include_files=False, extensions=None, excluded_folders=None):
     data = []
+    
+    # Convert excluded folders to lowercase for case-insensitive matching
+    if excluded_folders:
+        excluded_folders = [folder.strip().lower() for folder in excluded_folders if folder.strip()]
+    else:
+        excluded_folders = []
 
     for dirpath, dirnames, filenames in os.walk(root_folder):
+        # Remove excluded folders from dirnames to prevent os.walk from traversing them
+        dirnames[:] = [d for d in dirnames if d.lower() not in excluded_folders]
         # Collect folder info
         for dirname in dirnames:
             data.append({
