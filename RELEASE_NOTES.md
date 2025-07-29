@@ -1,6 +1,24 @@
+# 📦 Release Notes – FolderScanner v2.0.0
+
+**Release Date:** 2025-07-27
+
+## 🚀 New Features
+
+- **Files Scanning:** Scans folder contents to include files as an optional selection.
+- **Files Filter:** Files filter options enabled.
+## 🛠️ Improvements
+
+- Initial implementation with robust error handling and user instructions.
+
+## 📝 Notes
+
+- Please report any issues or feature requests via the [GitHub Issues page](https://github.com/your-username/your-repo/issues).
+- See the README for usage instructions.
+
+
 # 📦 Release Notes – FolderScanner v1.0.0
 
-**Release Date:** 2024-06-09
+**Release Date:** 2025-07-09
 
 ## 🚀 New Features
 
@@ -19,5 +37,3 @@
 - Please report any issues or feature requests via the [GitHub Issues page](https://github.com/your-username/your-repo/issues).
 - See the README for usage instructions.
 
-## Author
-- olufemi.akinwumi@wsp.com

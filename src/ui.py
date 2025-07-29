@@ -7,123 +7,124 @@ from src.replicator import replicate_folder_structure
 import sys
 import os
 
-def ask_user_choice():
-    root = tk.Tk()
-    root.title("Folder and File Scanner")
 
-    if getattr(sys, 'frozen', False):
-        base_path = sys._MEIPASS  # PyInstaller's temp path
-    else:
-        base_path = os.path.abspath(".")
+class FolderScannerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Folder and File Scanner")
 
-    icon_path = os.path.join(base_path, "icon", "folderScanner.ico")
-    root.iconbitmap(icon_path)
-    root.geometry("600x450")
-    root.eval('tk::PlaceWindow . center')
-
-    # ---------- Main Instructions ----------
-    guide_text = (
-        "Welcome to Folder and File Scanner!\n"
-        "It simply allows scanning, reporting and replicating folder contents.\n\n"
-        "• Check 'Include Files' to include files in the scan.\n"
-        "• Use the Filter text to filter by specific file types.\n"
-        "• Exclude specific folders by listing their names (separated by commas).\n"
-        "• Check 'Replicate Structure' to copy the folder (and files) layout elsewhere.\n"
-        "• Click 'Scan' to start the activity.\n\n"
-    )
-    tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="blue").pack(pady=10)
-
-    # ---------- Options Frame ----------
-    options_frame = tk.Frame(root)
-    options_frame.pack(fill="x", padx=20)
-
-    include_files_var = tk.BooleanVar()
-    exclude_folders_var = tk.BooleanVar()
-    replicate_var = tk.BooleanVar()
-    extensions_var = tk.StringVar()
-    excluded_folders_var = tk.StringVar()
-
-    # ---------- Toggled Input Frame Container ----------
-    toggle_frame = tk.Frame(root)
-    toggle_frame.pack(fill="x", padx=20, pady=5)
-
-    # ---------- Extensions Entry (initially hidden) ----------
-    extensions_frame = tk.Frame(toggle_frame)
-    tk.Label(extensions_frame, text="Provide file extensions, separated by ',' (example: .pdf, .docx)").pack(anchor="w")
-    tk.Entry(extensions_frame, textvariable=extensions_var, width=50).pack(anchor="w", pady=2)
-    extensions_frame.pack_forget()
-
-    # ---------- Excluded Folders Entry (initially hidden) ----------
-    folders_frame = tk.Frame(toggle_frame)
-    tk.Label(folders_frame, text="Exclude folders, separated by ','  (example: temp, cache, .git)").pack(anchor="w")
-    tk.Entry(folders_frame, textvariable=excluded_folders_var, width=50).pack(anchor="w", pady=2)
-    folders_frame.pack_forget()
-
-    # ---------- Checkbox Logic ----------
-    def toggle_extensions_input(*args):
-        if include_files_var.get():
-            extensions_frame.pack(fill="x", pady=5)
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
         else:
-            extensions_frame.pack_forget()
+            base_path = os.path.abspath(".")
 
-    def toggle_folders_input(*args):
-        if exclude_folders_var.get():
-            folders_frame.pack(fill="x", pady=5)
+        icon_path = os.path.join(base_path, "icon", "folderScanner.ico")
+        try:
+            root.iconbitmap(icon_path)
+        except tk.TclError:
+            pass  # No icon fallback
+
+        root.geometry("600x450")
+        root.eval('tk::PlaceWindow . center')
+
+        # ---------- Guide Text ----------
+        guide_text = (
+            "Welcome to Folder and File Scanner!\n"
+            "It allows scanning, reporting, and replicating folder contents.\n\n"
+            "• Check 'Include Files' to include files in the scan.\n"
+            "• Use the Filter text to filter by specific file types.\n"
+            "• Exclude specific folders by listing their names (comma-separated).\n"
+            "• Check 'Replicate Structure' to copy the folder layout elsewhere.\n"
+            "• Click 'Scan' to start.\n"
+        )
+        tk.Label(root, text=guide_text, justify="left", wraplength=580, fg="blue").pack(pady=10)
+
+        # ---------- Variables ----------
+        self.include_files_var = tk.BooleanVar()
+        self.exclude_folders_var = tk.BooleanVar()
+        self.replicate_var = tk.BooleanVar()
+        self.extensions_var = tk.StringVar()
+        self.excluded_folders_var = tk.StringVar()
+
+        # ---------- Options Frame ----------
+        options_frame = tk.Frame(root)
+        options_frame.pack(fill="x", padx=20)
+
+        # ---------- Checkboxes ----------
+        tk.Checkbutton(options_frame, text="Include File(s)", variable=self.include_files_var).pack(anchor="w", pady=2)
+        tk.Checkbutton(options_frame, text="Exclude Folder(s)", variable=self.exclude_folders_var).pack(anchor="w", pady=2)
+        tk.Checkbutton(options_frame, text="Replicate Structure", variable=self.replicate_var).pack(anchor="w", pady=2)
+
+        # ---------- Toggle Input Fields ----------
+        self.toggle_frame = tk.Frame(root)
+        self.toggle_frame.pack(fill="x", padx=20, pady=5)
+
+        self.extensions_frame = tk.Frame(self.toggle_frame)
+        tk.Label(self.extensions_frame, text="File extensions (e.g. .pdf, .docx)").pack(anchor="w")
+        tk.Entry(self.extensions_frame, textvariable=self.extensions_var, width=50).pack(anchor="w", pady=2)
+        self.extensions_frame.pack_forget()
+
+        self.folders_frame = tk.Frame(self.toggle_frame)
+        tk.Label(self.folders_frame, text="Exclude folders (e.g. temp, cache)").pack(anchor="w")
+        tk.Entry(self.folders_frame, textvariable=self.excluded_folders_var, width=50).pack(anchor="w", pady=2)
+        self.folders_frame.pack_forget()
+
+        # ---------- Toggle Events ----------
+        self.include_files_var.trace_add("write", self.toggle_extensions_input)
+        self.exclude_folders_var.trace_add("write", self.toggle_folders_input)
+
+        # ---------- Scan Button ----------
+        tk.Button(root, text="Scan", command=self.start_scan, width=20, height=2).pack(pady=20)
+
+    def toggle_extensions_input(self, *args):
+        if self.include_files_var.get():
+            self.extensions_frame.pack(fill="x", pady=5)
         else:
-            folders_frame.pack_forget()
+            self.extensions_frame.pack_forget()
 
-    include_files_var.trace_add("write", toggle_extensions_input)
-    exclude_folders_var.trace_add("write", toggle_folders_input)
+    def toggle_folders_input(self, *args):
+        if self.exclude_folders_var.get():
+            self.folders_frame.pack(fill="x", pady=5)
+        else:
+            self.folders_frame.pack_forget()
 
-    # ---------- Checkboxes ----------
-    tk.Checkbutton(options_frame, text="Include File(s)", variable=include_files_var, anchor="w").pack(anchor="w", pady=2)
-    tk.Checkbutton(options_frame, text="Exclude Folder(s)", variable=exclude_folders_var, anchor="w").pack(anchor="w", pady=2)
-    tk.Checkbutton(options_frame, text="Replicate Structure", variable=replicate_var, anchor="w").pack(anchor="w", pady=2)
-
-    # ---------- Scan Button ----------
-    tk.Button(root, text="Scan", command=lambda: start_scan(), width=20, height=2).pack(pady=20)
-
-    # ---------- Logic for Scanning ----------
-    def start_scan():
+    def start_scan(self):
         try:
             source_folder = select_folder("Select Folder to Scan")
             save_location = select_save_location()
 
-            include_files = include_files_var.get()
-            extensions = [ext.strip() for ext in extensions_var.get().split(',') if ext.strip()] if include_files else None
-            excluded_folders = [folder.strip() for folder in excluded_folders_var.get().split(',') if folder.strip()]
+            include_files = self.include_files_var.get()
+            extensions = [e.strip() for e in self.extensions_var.get().split(',') if e.strip()] if include_files else None
+            excluded_folders = [f.strip() for f in self.excluded_folders_var.get().split(',') if f.strip()] if self.exclude_folders_var.get() else None
 
-            if replicate_var.get():
+            if self.replicate_var.get():
                 dest_folder = select_folder("Select Destination for Replication")
-                replication_results = replicate_folder_structure(
-                    source_folder,
-                    dest_folder,
-                    include_files,
-                    extensions,
-                    excluded_folders
+                results = replicate_folder_structure(
+                    source_folder, dest_folder, include_files, extensions, excluded_folders
                 )
-                pd.DataFrame(replication_results).to_excel(save_location, index=False)
+                pd.DataFrame(results).to_excel(save_location, index=False)
             else:
                 data = collect_folders_and_files(
-                    source_folder,
-                    include_files,
-                    extensions,
-                    excluded_folders
+                    source_folder, include_files, extensions, excluded_folders
                 )
                 save_to_excel(data, save_location)
 
-            message = (
-                f"Scan and Copy completed successfully.\nReport has been saved to:\n{save_location}"
-                if replicate_var.get()
-                else f"Scan completed successfully.\nReport has been saved to:\n{save_location}"
+            msg = (
+                f"Scan and Copy completed.\nReport saved to:\n{save_location}"
+                if self.replicate_var.get()
+                else f"Scan completed.\nReport saved to:\n{save_location}"
             )
-            messagebox.showinfo("Completed", message)
+            messagebox.showinfo("Completed", msg)
 
         except FileNotFoundError:
-            messagebox.showwarning("Cancelled", "Operation cancelled by the user.")
+            messagebox.showwarning("Cancelled", "Operation cancelled.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred:\n{e}")
         finally:
-            root.destroy()
+            self.root.destroy()
 
+
+def ask_user_choice():
+    root = tk.Tk()
+    FolderScannerApp(root)
     root.mainloop()
