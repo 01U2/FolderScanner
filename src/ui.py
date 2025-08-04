@@ -74,12 +74,7 @@ class FolderScannerApp:
         tk.Label(self.folders_frame, text="Exclude folders (e.g. temp, cache)").pack(anchor="w")
         tk.Entry(self.folders_frame, textvariable=self.excluded_folders_var, width=50).pack(anchor="w", pady=2)
         self.folders_frame.pack_forget()
-        
-        self.duplicates_frame = tk.Frame(self.toggle_frame)
-        tk.Label(self.duplicates_frame, text="Document Duplicates?").pack(anchor="w")
-        tk.Entry(self.duplicates_frame, textvariable=self.detect_duplicates_var, width=50).pack(anchor="w", pady=2)
-        self.duplicates_frame.pack_forget()
-        
+       
         
 
         # ---------- Toggle Events ----------
@@ -102,6 +97,12 @@ class FolderScannerApp:
         else:
             self.folders_frame.pack_forget()
 
+    def toggle_duplicate_detection(self, *args):
+        if self.detect_duplicates_var.get():
+            self.duplicates_frame.pack(fill="x", pady=5)
+        else:
+            self.duplicates_frame.pack_forget()
+            
     def start_scan_thread(self):
         threading.Thread(target=self.start_scan).start()
 
