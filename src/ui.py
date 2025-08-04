@@ -7,6 +7,7 @@ from src.replicator import replicate_folder_structure
 from src.duplicate_detector import find_duplicates, format_duplicate_results, get_duplicate_statistics
 import sys
 import os
+import threading
 
 
 class FolderScannerApp:
@@ -26,6 +27,8 @@ class FolderScannerApp:
             pass  # No icon fallback
 
         root.geometry("600x450")
+        root.resizable(True, True)
+
         root.eval('tk::PlaceWindow . center')
 
         # ---------- Guide Text ----------
@@ -55,7 +58,7 @@ class FolderScannerApp:
         # ---------- Checkboxes ----------
         tk.Checkbutton(options_frame, text="Include File(s)", variable=self.include_files_var).pack(anchor="w", pady=2)
         tk.Checkbutton(options_frame, text="Exclude Folder(s)", variable=self.exclude_folders_var).pack(anchor="w", pady=2)
-        tk.Checkbutton(options_frame, text="Detect Duplicates", variable=detect_duplicates_var, anchor="w").pack(anchor="w", pady=2)
+        tk.Checkbutton(options_frame, text="Detect Duplicates", variable=self.detect_duplicates_var).pack(anchor="w", pady=2)
         tk.Checkbutton(options_frame, text="Replicate Structure", variable=self.replicate_var).pack(anchor="w", pady=2)
 
         # ---------- Toggle Input Fields ----------
@@ -72,10 +75,10 @@ class FolderScannerApp:
         tk.Entry(self.folders_frame, textvariable=self.excluded_folders_var, width=50).pack(anchor="w", pady=2)
         self.folders_frame.pack_forget()
         
-        self.folders_frame = tk.Frame(self.toggle_frame)
-        tk.Label(self.folders_frame, text="Document Duplicates?").pack(anchor="w")
-        tk.Entry(self.folders_frame, textvariable=self.detect_duplicates_var, width=50).pack(anchor="w", pady=2)
-        self.folders_frame.pack_forget()
+        self.duplicates_frame = tk.Frame(self.toggle_frame)
+        tk.Label(self.duplicates_frame, text="Document Duplicates?").pack(anchor="w")
+        tk.Entry(self.duplicates_frame, textvariable=self.detect_duplicates_var, width=50).pack(anchor="w", pady=2)
+        self.duplicates_frame.pack_forget()
         
         
 
@@ -85,7 +88,7 @@ class FolderScannerApp:
         self.detect_duplicates_var.trace_add("write", self.toggle_duplicate_detection)
 
         # ---------- Scan Button ----------
-        tk.Button(root, text="Scan", command=self.start_scan, width=20, height=2).pack(pady=20)
+        tk.Button(root, text="Scan", command=self.start_scan_thread, width=20, height=2).pack(pady=20)
 
     def toggle_extensions_input(self, *args):
         if self.include_files_var.get():
@@ -99,14 +102,21 @@ class FolderScannerApp:
         else:
             self.folders_frame.pack_forget()
 
+    def start_scan_thread(self):
+        threading.Thread(target=self.start_scan).start()
+
     def start_scan(self):
         try:
             source_folder = select_folder("Select Folder to Scan")
 
             include_files = self.include_files_var.get()
-            detect_duplicates = detect_duplicates_var.get()
+            detect_duplicates = self.detect_duplicates_var.get()
             extensions = [e.strip() for e in self.extensions_var.get().split(',') if e.strip()] if include_files else None
             excluded_folders = [f.strip() for f in self.excluded_folders_var.get().split(',') if f.strip()] if self.exclude_folders_var.get() else None
+
+            if extensions and not all(e.startswith('.') for e in extensions):
+                messagebox.showerror("Error", "File extensions must start with a dot (e.g., .txt, .pdf).")
+                return
 
             if self.replicate_var.get():
                 save_location = select_save_location(report_type="replication")
