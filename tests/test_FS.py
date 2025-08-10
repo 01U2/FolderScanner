@@ -8,7 +8,7 @@ from pathlib import Path
 from src.scanner import collect_folders_and_files
 from src.replicator import replicate_folder_structure
 from src.file_io import save_to_excel
-from src.duplicate_detector import calculate_file_hash, find_duplicates, format_duplicate_results, get_duplicate_statistics
+from src.duplicate_detector import get_file_name, find_duplicates, format_duplicate_results, get_duplicate_statistics
 
 
 class TestFolderScanner(unittest.TestCase):
@@ -182,19 +182,22 @@ class TestDuplicateDetector(unittest.TestCase):
 
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
-        # Create test files with known content
-        self.file1_path = os.path.join(self.test_dir, "file1.txt")
-        self.file2_path = os.path.join(self.test_dir, "file2.txt")
-        self.duplicate_path = os.path.join(self.test_dir, "duplicate.txt")
+        # Create test files with known filenames for filename-based duplicate detection
+        self.file1_path = os.path.join(self.test_dir, "document.txt")
+        self.duplicate_path = os.path.join(self.test_dir, "subfolder", "document.txt")
+        self.file2_path = os.path.join(self.test_dir, "report.txt")
         self.unique_path = os.path.join(self.test_dir, "unique.txt")
         
-        # Create files with same content (duplicates)
+        # Create subfolder
+        os.makedirs(os.path.join(self.test_dir, "subfolder"))
+        
+        # Create files - same filename in different locations (duplicates)
         with open(self.file1_path, "w") as f:
-            f.write("Hello World")
+            f.write("Content A")
         with open(self.duplicate_path, "w") as f:
-            f.write("Hello World")
+            f.write("Content B")  # Different content, same filename
             
-        # Create files with different content
+        # Create files with unique filenames
         with open(self.file2_path, "w") as f:
             f.write("Different content")
         with open(self.unique_path, "w") as f:
@@ -203,60 +206,65 @@ class TestDuplicateDetector(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.test_dir)
 
-    def test_calculate_file_hash(self):
-        hash1 = calculate_file_hash(self.file1_path)
-        hash2 = calculate_file_hash(self.duplicate_path)
-        hash3 = calculate_file_hash(self.file2_path)
+    def test_get_file_name(self):
+        # For filename-based detection, function returns lowercase filename
+        hash1 = get_file_name(self.file1_path)
+        hash2 = get_file_name(self.duplicate_path)
+        hash3 = get_file_name(self.file2_path)
         
-        # Same content should produce same hash
-        self.assertEqual(hash1, hash2)
-        # Different content should produce different hash
-        self.assertNotEqual(hash1, hash3)
+        # Same filename should produce same "hash" (filename)
+        self.assertEqual(hash1, hash2)  # Both are "document.txt"
+        # Different filename should produce different "hash"
+        self.assertNotEqual(hash1, hash3)  # "document.txt" vs "report.txt"
         # Hash should be a non-empty string
         self.assertIsInstance(hash1, str)
         self.assertGreater(len(hash1), 0)
+        # Should be lowercase
+        self.assertEqual(hash1, "document.txt")
 
-    def test_calculate_file_hash_sha256(self):
-        hash_md5 = calculate_file_hash(self.file1_path, 'md5')
-        hash_sha256 = calculate_file_hash(self.file1_path, 'sha256')
+    def test_get_file_name_sha256(self):
+        # For filename-based detection, algorithm parameter is ignored
+        hash_md5 = get_file_name(self.file1_path, 'md5')
+        hash_sha256 = get_file_name(self.file1_path, 'sha256')
         
-        # Different algorithms should produce different hashes
-        self.assertNotEqual(hash_md5, hash_sha256)
-        # SHA256 hash should be longer than MD5
-        self.assertGreater(len(hash_sha256), len(hash_md5))
+        # Both should return the same filename since algorithm is ignored
+        self.assertEqual(hash_md5, hash_sha256)
+        self.assertEqual(hash_md5, "document.txt")
 
-    def test_calculate_file_hash_nonexistent_file(self):
-        result = calculate_file_hash("/nonexistent/file.txt")
-        self.assertIsNone(result)
+    def test_get_file_name_nonexistent_file(self):
+        result = get_file_name("/nonexistent/file.txt")
+        # Should return the filename even if file doesn't exist (for compatibility)
+        self.assertEqual(result, "file.txt")
 
     def test_find_duplicates(self):
-        # Create file list similar to scanner output
+        # Create file list similar to scanner output with filename duplicates
         file_list = [
-            {'Type': 'File', 'Name': 'file1.txt', 'Path': self.file1_path, 'Extension': '.txt'},
-            {'Type': 'File', 'Name': 'duplicate.txt', 'Path': self.duplicate_path, 'Extension': '.txt'},
-            {'Type': 'File', 'Name': 'file2.txt', 'Path': self.file2_path, 'Extension': '.txt'},
+            {'Type': 'File', 'Name': 'document.txt', 'Path': self.file1_path, 'Extension': '.txt'},
+            {'Type': 'File', 'Name': 'document.txt', 'Path': self.duplicate_path, 'Extension': '.txt'},
+            {'Type': 'File', 'Name': 'report.txt', 'Path': self.file2_path, 'Extension': '.txt'},
             {'Type': 'File', 'Name': 'unique.txt', 'Path': self.unique_path, 'Extension': '.txt'},
             {'Type': 'Folder', 'Name': 'somefolder', 'Path': '/some/path', 'Extension': ''}
         ]
         
         duplicates = find_duplicates(file_list)
         
-        # Should find one group of duplicates
+        # Should find one group of duplicates (document.txt files)
         self.assertEqual(len(duplicates), 1)
         
-        # Each duplicate group should have exactly 2 files
-        for hash_val, files in duplicates.items():
+        # The duplicate group should have exactly 2 files
+        for filename, files in duplicates.items():
             self.assertEqual(len(files), 2)
-            # Check that both files have the same hash
+            self.assertEqual(filename, "document.txt")
+            # Check that both files have the same "hash" (filename)
             self.assertEqual(files[0]['Hash'], files[1]['Hash'])
             # Check that files have Size information
             self.assertIn('Size', files[0])
             self.assertIn('Size', files[1])
 
     def test_find_duplicates_no_duplicates(self):
-        # Create file list with unique files only
+        # Create file list with unique filenames only
         file_list = [
-            {'Type': 'File', 'Name': 'file2.txt', 'Path': self.file2_path, 'Extension': '.txt'},
+            {'Type': 'File', 'Name': 'report.txt', 'Path': self.file2_path, 'Extension': '.txt'},
             {'Type': 'File', 'Name': 'unique.txt', 'Path': self.unique_path, 'Extension': '.txt'}
         ]
         
@@ -325,11 +333,11 @@ class TestDuplicateDetectorIntegration(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp()
         os.makedirs(os.path.join(self.test_dir, "subfolder"))
         
-        # Create duplicate files in different locations
-        with open(os.path.join(self.test_dir, "original.txt"), "w") as f:
-            f.write("This is duplicate content")
-        with open(os.path.join(self.test_dir, "subfolder", "copy.txt"), "w") as f:
-            f.write("This is duplicate content")
+        # Create duplicate files with same filename in different locations
+        with open(os.path.join(self.test_dir, "document.txt"), "w") as f:
+            f.write("Original content")
+        with open(os.path.join(self.test_dir, "subfolder", "document.txt"), "w") as f:
+            f.write("Different content but same filename")
         
         # Create unique files
         with open(os.path.join(self.test_dir, "unique1.txt"), "w") as f:
